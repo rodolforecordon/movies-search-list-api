@@ -18,7 +18,8 @@ import MoviesServices from '../services/movies.service.js';
 
 const getMovies = async (req, res, next) => {
   try {
-    const processStart = new Date().getMilliseconds();
+    const processStart = new Date().getTime();
+    let processEnd;
     const { title, type, year, page } = req.query;
 
     const getMoviesList = await MoviesServices.getMoviesSummary(title, type, year, page);
@@ -28,7 +29,6 @@ const getMovies = async (req, res, next) => {
 
     // checking response
     if (!moviesList) {
-      logger.info(`GET /movies/ - ${message}`);
       return await res.status(200).send({ message });
     }
 
@@ -37,12 +37,15 @@ const getMovies = async (req, res, next) => {
       const { imdbID } = moviesList[i];
       const getDetails = await MoviesServices.getMovieDetails(imdbID);
       moviesList[i].DetailedInfo = getDetails.data;
+      processEnd = new Date().getTime();
     }
 
-    const processEnd = new Date().getMilliseconds();
     logger.info(`GET /movies/ - request process time: ${processEnd - processStart}ms.`);
 
-    return await res.status(200).send({ moviesList, totalMovies });
+    return await res
+      .status(200)
+      .set('Cache-control', 'public, max-age=84000')
+      .send({ moviesList, totalMovies });
   } catch (err) {
     next(err);
   }

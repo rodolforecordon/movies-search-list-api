@@ -21,7 +21,7 @@ app.use('/movies', moviesRoutes);
 // Error handler middleware
 app.use((err, req, res, next) => {
   logger.error(`${req.method} ${req.baseUrl}- ${err.message}`);
-  res.status(400).send({ error: err.message });
+  res.status(400).send({ error: err });
 });
 
 export default app;
